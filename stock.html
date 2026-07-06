@@ -168,7 +168,7 @@
     <script>
         const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db= supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         document.addEventListener("DOMContentLoaded", () => {
             cargarProductos();
@@ -176,7 +176,7 @@
         });
 
         async function cargarProductos() {
-            const { data, error } = await supabase.from('productos').select('*').eq('estado', true).order('nombre', { ascending: true });
+            const { data, error } = await db.from('productos').select('*').eq('estado', true).order('nombre', { ascending: true });
             if (error) return alert("Error cargando inventario.");
 
             const tbody = document.getElementById('listaProductos');
@@ -205,7 +205,7 @@
         }
 
         async function cargarComboProveedores() {
-            const { data } = await supabase.from('proveedores').select('id, nombre');
+            const { data } = await db.from('proveedores').select('id, nombre');
             const combo = document.getElementById('prodProveedor');
             if(data) {
                 data.forEach(prov => {
@@ -233,7 +233,7 @@
         }
 
         async function editarProducto(id) {
-            const { data } = await supabase.from('productos').select('*').eq('id', id).single();
+            const { data } = await db.from('productos').select('*').eq('id', id).single();
             if (data) {
                 abrirFormulario();
                 document.getElementById('formTitle').innerText = "Editar Producto";
@@ -267,9 +267,9 @@
             if(!payload.codigo_barras || !payload.nombre) return alert("Completa los campos obligatorios.");
 
             if (id) {
-                await supabase.from('productos').update(payload).eq('id', id);
+                await db.from('productos').update(payload).eq('id', id);
             } else {
-                await supabase.from('productos').insert([payload]);
+                await db.from('productos').insert([payload]);
             }
 
             cerrarFormulario();
@@ -278,7 +278,7 @@
 
         async function eliminarProducto(id) {
             if (confirm("¿Estás seguro de que deseas dar de baja este producto del catálogo?")) {
-                await supabase.from('productos').update({ estado: false }).eq('id', id);
+                await db.from('productos').update({ estado: false }).eq('id', id);
                 cargarProductos();
             }
         }
