@@ -152,7 +152,7 @@
         // REEMPLAZAR CON TUS CREDENCIALES DE SUPABASE
         const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let carrito = [];
         let metodoPago = "Efectivo";
@@ -181,7 +181,7 @@
 
         async function buscarYAgregar(codigo) {
             // Consulta real a la base de datos de Supabase
-            const { data, error } = await supabase.from('productos').select('*').eq('codigo_barras', codigo).eq('estado', true).single();
+            const { data, error } = await db.from('productos').select('*').eq('codigo_barras', codigo).eq('estado', true).single();
 
             if (error || !data) {
                 alert('El producto no está registrado o se encuentra inactivo.');
@@ -260,7 +260,7 @@
             }
 
             // Validar/Obtener última caja abierta de la sucursal
-            const { data: caja } = await supabase.from('cajas').select('id').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
+            const { data: caja } = await db.from('cajas').select('id').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
             
             if (!caja || caja.length === 0) {
                 alert('No se puede realizar la venta porque no hay un turno de caja abierto. Diríjase a Reportes/Caja.');
@@ -271,7 +271,7 @@
             let totalVenta = carrito.reduce((sum, item) => sum + (item.precio_venta * item.cantidad), 0);
 
             // 1. Registrar Venta principal
-            const { data: venta, error: errorVenta } = await supabase.from('ventas').insert([{
+            const { data: venta, error: errorVenta } = await db.from('ventas').insert([{
                 id_caja: cajaAbiertaId,
                 total: totalVenta,
                 metodo_pago: metodoPago
@@ -284,7 +284,7 @@
 
             // 2. Registrar detalles y descontar stock correspondientemente
             for (let item of carrito) {
-                await supabase.from('venta_detalles').insert([{
+                await db.from('venta_detalles').insert([{
                     id_venta: venta.id,
                     id_producto: item.id,
                     cantidad: item.cantidad,
@@ -293,10 +293,10 @@
                 }]);
 
                 // Descontar stock usando RPC o lectura-escritura directa
-                const { data: prod } = await supabase.from('productos').select('stock_actual').eq('id', item.id).single();
+                const { data: prod } = await db.from('productos').select('stock_actual').eq('id', item.id).single();
                 if (prod) {
                     let nuevoStock = parseFloat(prod.stock_actual) - item.cantidad;
-                    await supabase.from('productos').update({ stock_actual: nuevoStock }).eq('id', item.id);
+                    await db.from('productos').update({ stock_actual: nuevoStock }).eq('id', item.id);
                 }
             }
 
