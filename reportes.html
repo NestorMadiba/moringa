@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Quiero Moringa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #7cfc00; --sidebar-bg: #1e293b; --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --border: #e2e8f0; --dark-bg: #0f172a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; }
+        .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 20px; text-transform: uppercase; line-height: 1.2; }
+        .sidebar-item { width: 80px; height: 75px; color: #94a3b8; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 11px; font-weight: 500; text-align: center; gap: 5px; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); color: var(--dark-bg); font-weight: 600; }
+        .sidebar-item svg { width: 24px; height: 24px; fill: currentColor; }
+        
+        .main-container { flex: 1; display: flex; flex-direction: column; padding: 25px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h1 { font-size: 24px; color: var(--dark-bg); }
+        
+        .grid-reportes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card-rep { background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
+        .form-caja { display: flex; gap: 10px; margin-top: 15px; }
+        input, button { padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+        button { cursor: pointer; font-weight: bold; }
+        .btn-caja-act { background: var(--primary); color: var(--dark-bg); border: none; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Quiero<br>Moringa</div>
+        <a href="index.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            Ventas
+        </a>
+        <a href="stock.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+            Stock
+        </a>
+        <a href="proveedores.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Proveedores
+        </a>
+        <a href="usuarios.html" class="sidebar-item">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Usuarios
+        </a>
+        <a href="reportes.html" class="sidebar-item active">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>
+            Reportes/Caja
+        </a>
+    </nav>
+
+    <main class="main-container">
+        <header class="header">
+            <h1>Control de Caja y Auditoría</h1>
+        </header>
+        
+        <div class="grid-reportes">
+            <section class="card-rep">
+                <h2>Arqueo de Turno Diario</h2>
+                <p style="margin-top:5px; color:#64748b;">Apertura y Cierre Manual de Caja Central.</p>
+                
+                <div class="form-caja">
+                    <input type="number" id="montoInicial" placeholder="Monto Inicial Arqueo ($)">
+                    <button class="btn-caja-act" onclick="abrirCaja()">Abrir Caja</button>
+                </div>
+                <div class="form-caja" style="margin-top:20px;">
+                    <button style="background:var(--dark-bg); color:white; width:100%;" onclick="cerrarCaja()">Efectuar Cierre de Caja Actual</button>
+                </div>
+            </section>
+
+            <section class="card-rep">
+                <h2>Ventas por Rubro de Producto</h2>
+                <ul id="ventasRubro" style="margin-top:15px; list-style:none; padding:0;">
+                    <li style="padding:8px 0; border-bottom:1px solid var(--border);">Cargando estadísticas...</li>
+                </ul>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://TU_PROYECTO.supabase.co"; const SUPABASE_KEY = "TU_ANON_KEY";
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            consultarVentasPorRubro();
+        });
+
+        async function abrirCaja() {
+            const monto = parseFloat(document.getElementById('montoInicial').value);
+            if(!monto && monto !== 0) return alert('Por favor, digite un monto de base válido.');
+
+            // Obtener el primer usuario existente para cumplir la integridad referencial
+            const { data: usr } = await supabase.from('usuarios').select('id').limit(1).single();
+
+            const { error } = await supabase.from('cajas').insert([{
+                id_usuario: usr.id,
+                monto_inicial: monto,
+                estado: 'abierta'
+            }]);
+
+            if(!error) alert('¡Turno de caja iniciado correctamente!');
+            else alert('Error de base de datos al abrir caja.');
+        }
+
+        async function cerrarCaja() {
+            const { data: caja } = await supabase.from('cajas').select('*').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
+            if(!caja || caja.length === 0) return alert('No hay ninguna caja abierta actualmente.');
+
+            // Sumar todas las ventas asociadas a este turno de caja
+            const { data: vts } = await supabase.from('ventas').select('total').eq('id_caja', caja[0].id);
+            let totalRecaudado = vts ? vts.reduce((sum, v) => sum + parseFloat(v.total), 0) : 0;
+            let montoFinalCalculado = parseFloat(caja[0].monto_inicial) + totalRecaudado;
+
+            await supabase.from('cajas').update({
+                fecha_cierre: new Date().toISOString(),
+                monto_final: montoFinalCalculado,
+                estado: 'cerrada'
+            }).eq('id', caja[0].id);
+
+            alert(`Caja cerrada con éxito.\nMonto Inicial: $${caja[0].monto_inicial}\nTotal Ventas: $${totalRecaudado}\nMonto Final en Caja: $${montoFinalCalculado}`);
+        }
+
+        async function consultarVentasPorRubro() {
+            // Consulta para reportes uniendo detalles y productos
+            const { data, error } = await supabase.from('venta_detalles').select('subtotal, productos(rubro)');
+            
+            if(data) {
+                const rubrosObj = {};
+                data.forEach(item => {
+                    const rNombre = item.productos?.rubro || 'General';
+                    rubrosObj[rNombre] = (rubrosObj[rNombre] || 0) + parseFloat(item.subtotal);
+                });
+
+                const ul = document.getElementById('ventasRubro');
+                ul.innerHTML = '';
+                for(let r in rubrosObj) {
+                    ul.innerHTML += `<li style="padding:8px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;"><span>${r}</span><b>$ ${rubrosObj[r].toFixed(2)}</b></li>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
