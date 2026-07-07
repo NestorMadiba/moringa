@@ -6,14 +6,10 @@
     <title>POS - Quiero Moringa</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b;
-            --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --danger: #ef4444; --border: #e2e8f0;
-        }
+        :root { --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b; --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --danger: #ef4444; --border: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
         
-        /* PANTALLA DE LOGIN (PIN) */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-bg); display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
         .login-box { background: var(--white); padding: 40px; border-radius: 16px; text-align: center; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .login-box h2 { color: var(--dark-bg); margin-bottom: 5px; font-size: 24px;}
@@ -23,24 +19,26 @@
         .login-box button { background: var(--primary); color: var(--dark-bg); border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
         .login-box button:hover { background: var(--primary-dark); }
         
-        /* Sidebar Global */
         .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; }
         .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 20px; text-transform: uppercase; line-height: 1.2; }
         .sidebar-item { width: 80px; height: 75px; color: #94a3b8; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 11px; font-weight: 500; text-align: center; gap: 5px; }
         .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); color: var(--dark-bg); font-weight: 600; }
         .sidebar-item svg { width: 24px; height: 24px; fill: currentColor; }
 
-        /* Contenido */
         .main-container { flex: 1; display: flex; flex-direction: column; padding: 25px; overflow: hidden; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-        .header h1 { font-size: 24px; color: var(--dark-bg); font-weight: 700; }
-        .info-sucursal { font-size: 14px; color: #64748b; background: var(--white); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); display: flex; gap: 10px; align-items: center;}
+        .header h1 { font-size: 24px; color: var(--dark-bg); font-weight: 700; margin-bottom: 5px;}
+        .header-date { font-size: 14px; color: #64748b; font-weight: 500; text-transform: capitalize; }
+        
+        .top-actions { display: flex; gap: 15px; align-items: center; }
+        .btn-shortcut { background: var(--dark-bg); color: var(--white); text-decoration: none; padding: 8px 15px; border-radius: 8px; font-size: 13px; font-weight: 600; transition: 0.2s; }
+        .btn-shortcut:hover { background: #334155; }
+        .info-sucursal { font-size: 13px; color: #64748b; background: var(--white); padding: 8px 15px; border-radius: 8px; border: 1px solid var(--border); display: flex; gap: 10px; align-items: center;}
         .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;}
         
-        .pos-grid { display: flex; gap: 25px; height: calc(100% - 75px); }
+        .pos-grid { display: flex; gap: 25px; height: calc(100% - 85px); }
         .ticket-section { flex: 2; background: var(--white); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--border); }
         
-        /* Buscador Inteligente */
         .search-container { position: relative; margin-bottom: 20px; }
         .search-container input { width: 100%; padding: 16px; padding-left: 45px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; transition: 0.2s; background-color: var(--light-bg); }
         .search-container input:focus { border-color: var(--primary-dark); outline: none; background-color: var(--white); }
@@ -53,22 +51,22 @@
 
         .table-wrapper { flex: 1; overflow-y: auto; }
         .cart-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .cart-table th { padding: 12px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+        .cart-table th { padding: 12px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; position: sticky; top: 0; background: var(--white); }
         .cart-table td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
         .qty-input { width: 85px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 15px; font-weight: 600; }
         .btn-delete { background: #fee2e2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
 
-        /* Lateral Pago */
         .checkout-section { flex: 1; background: var(--white); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); }
         .totals-box { background: var(--light-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px; color: #64748b; }
-        .total-row.grand-total { font-size: 32px; font-weight: 800; color: var(--dark-bg); border-top: 2px dashed var(--border); padding-top: 15px; margin-top: 15px; }
+        .total-row.grand-total { font-size: 32px; font-weight: 800; color: var(--dark-bg); border-top: 2px dashed var(--border); padding-top: 15px; margin-top: 15px; margin-bottom: 0;}
         
         .payment-title { font-size: 14px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 12px; }
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
         .btn-pay-method { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--white); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-main); }
         .btn-pay-method.active { background: var(--dark-bg); color: var(--white); border-color: var(--dark-bg); }
-        .btn-submit-sale { background: var(--primary); color: var(--dark-bg); border: none; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; box-shadow: 0 4px 10px rgba(124, 252, 0, 0.3); }
+        .btn-submit-sale { background: var(--primary); color: var(--dark-bg); border: none; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; box-shadow: 0 4px 10px rgba(124, 252, 0, 0.3); transition: 0.2s; }
+        .btn-submit-sale:hover { background: var(--primary-dark); }
     </style>
 </head>
 <body>
@@ -93,10 +91,16 @@
 
     <main class="main-container">
         <header class="header">
-            <h1>Nueva Venta</h1>
-            <div class="info-sucursal">
-                📍 Mitre 405 | Cajero/a: <b id="nombreCajeroTexto">Ninguno</b>
-                <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            <div>
+                <h1>Punto de Venta</h1>
+                <div class="header-date" id="relojEnVivo">Cargando fecha...</div>
+            </div>
+            <div class="top-actions">
+                <a href="stock.html" class="btn-shortcut">+ Dar de Alta Producto</a>
+                <div class="info-sucursal">
+                    Cajero: <b id="nombreCajeroTexto">Ninguno</b>
+                    <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+                </div>
             </div>
         </header>
 
@@ -127,8 +131,8 @@
             <section class="checkout-section">
                 <div>
                     <div class="totals-box">
-                        <div class="total-row"><span>Subtotal</span><span id="txtSubtotal">$ 0,00</span></div>
-                        <div class="total-row grand-total"><span>TOTAL</span><span id="txtTotal">$ 0,00</span></div>
+                        <div class="total-row"><span>Subtotal</span><span id="txtSubtotal">$ 0.00</span></div>
+                        <div class="total-row grand-total"><span>TOTAL</span><span id="txtTotal">$ 0.00</span></div>
                     </div>
                     <div class="payment-title">Método de Pago</div>
                     <div class="payment-methods">
@@ -144,7 +148,6 @@
     </main>
 
     <script>
-        // 1. TUS CREDENCIALES
         const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -159,7 +162,14 @@
         const loginOverlay = document.getElementById('loginOverlay');
         const inputPin = document.getElementById('inputPin');
 
-        // 2. SISTEMA DE LOGIN (Bloqueo inicial)
+        // RELOJ EN VIVO
+        function actualizarReloj() {
+            const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('relojEnVivo').innerText = new Date().toLocaleDateString('es-AR', opciones);
+        }
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj();
+
         window.onload = () => {
             const userGuardado = localStorage.getItem('usuarioActivoQM');
             if (userGuardado) {
@@ -174,7 +184,7 @@
 
         async function validarLogin() {
             const pin = inputPin.value.trim();
-            const { data, error } = await db.from('usuarios').select('*').eq('pin', pin).eq('estado', true).maybeSingle();
+            const { data } = await db.from('usuarios').select('*').eq('pin', pin).eq('estado', true).maybeSingle();
             
             if (data) {
                 localStorage.setItem('usuarioActivoQM', JSON.stringify(data));
@@ -190,63 +200,41 @@
 
         function cerrarSesion() {
             localStorage.removeItem('usuarioActivoQM');
-            location.reload(); // Recarga la página y vuelve a mostrar el candado
+            location.reload();
         }
 
-        // 3. BUSCADOR INTELIGENTE (Nombre y Código)
         let timeoutBuscador = null;
-        
         barcodeScanner.addEventListener('input', function() {
             clearTimeout(timeoutBuscador);
             const texto = this.value.trim();
-            
-            if (texto.length < 2) {
-                searchResults.style.display = 'none';
-                return;
-            }
+            if (texto.length < 2) { searchResults.style.display = 'none'; return; }
 
-            // Esperar 300ms después de escribir para no saturar la base de datos
             timeoutBuscador = setTimeout(async () => {
-                const { data } = await db.from('productos')
-                    .select('*')
-                    .eq('estado', true)
-                    .or(`codigo_barras.eq.${texto},nombre.ilike.%${texto}%`)
-                    .limit(10); // Trae hasta 10 coincidencias
-
+                const { data } = await db.from('productos').select('*').eq('estado', true).or(`codigo_barras.eq.${texto},nombre.ilike.%${texto}%`).limit(10);
                 if (data && data.length > 0) {
                     searchResults.innerHTML = '';
                     data.forEach(prod => {
                         searchResults.innerHTML += `
                             <div class="search-item" onclick="agregarAlCarritoId('${prod.id}')">
-                                <div>
-                                    <div class="search-item-name">${prod.nombre}</div>
-                                    <div style="font-size:12px; color:#64748b;">Cod: ${prod.codigo_barras} | ${prod.tipo_unidad}</div>
-                                </div>
+                                <div><div class="search-item-name">${prod.nombre}</div><div style="font-size:12px; color:#64748b;">Cod: ${prod.codigo_barras} | ${prod.tipo_unidad}</div></div>
                                 <div class="search-item-price">$${parseFloat(prod.precio_venta).toFixed(2)}</div>
                             </div>
                         `;
                     });
                     searchResults.style.display = 'block';
-                } else {
-                    searchResults.style.display = 'none';
-                }
+                } else { searchResults.style.display = 'none'; }
             }, 300);
         });
 
-        // Evento exclusivo para la LECTORA (al escuchar el ENTER final)
         barcodeScanner.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 searchResults.style.display = 'none';
                 const codigo = this.value.trim();
                 if (codigo) {
-                    // Busca por código de barra exacto
                     const { data } = await db.from('productos').select('*').eq('codigo_barras', codigo).eq('estado', true).maybeSingle();
-                    if (data) {
-                        agregarDirecto(data);
-                    } else {
-                        alert('Código no encontrado.');
-                    }
+                    if (data) agregarDirecto(data);
+                    else alert('Código no encontrado.');
                 }
                 this.value = '';
             }
@@ -260,7 +248,6 @@
             barcodeScanner.focus();
         }
 
-        // 4. LÓGICA DE CARRITO Y VENTAS (Igual a la versión anterior)
         function agregarDirecto(producto) {
             const itemEnCarrito = carrito.find(item => item.id === producto.id);
             if (itemEnCarrito) {
@@ -317,6 +304,7 @@
             cajaAbiertaId = caja[0].id;
             let totalVenta = carrito.reduce((sum, item) => sum + (item.precio_venta * item.cantidad), 0);
 
+            // Se agrega select() para recuperar el numero_ticket autogenerado por la base de datos
             const { data: venta, error } = await db.from('ventas').insert([{ id_caja: cajaAbiertaId, total: totalVenta, metodo_pago: metodoPago }]).select().single();
             if (error) return alert('Error al registrar venta.');
 
@@ -328,7 +316,7 @@
                 }
             }
 
-            alert('Venta registrada con éxito.');
+            alert(`VENTA REGISTRADA CON ÉXITO\n\nTicket N°: ${venta.numero_ticket}\nForma de Pago: ${metodoPago}\nTotal: $${totalVenta.toFixed(2)}`);
             carrito = []; renderizarCarrito(); barcodeScanner.focus();
         }
     </script>
