@@ -95,9 +95,9 @@
             if(!monto && monto !== 0) return alert('Por favor, digite un monto de base válido.');
 
             // Obtener el primer usuario existente para cumplir la integridad referencial
-            const { data: usr } = await supabase.from('usuarios').select('id').limit(1).single();
+            const { data: usr } = await db.from('usuarios').select('id').limit(1).single();
 
-            const { error } = await supabase.from('cajas').insert([{
+            const { error } = await db.from('cajas').insert([{
                 id_usuario: usr.id,
                 monto_inicial: monto,
                 estado: 'abierta'
