@@ -87,7 +87,7 @@
         document.addEventListener("DOMContentLoaded", cargarProveedores);
 
         async function cargarProveedores() {
-            const { data } = await supabase.from('proveedores').select('*').order('nombre', {ascending:true});
+            const { data } = await db.from('proveedores').select('*').order('nombre', {ascending:true});
             const tbody = document.getElementById('tablaProv'); tbody.innerHTML = '';
             if(data) {
                 data.forEach(p => {
@@ -102,7 +102,7 @@
             const email = document.getElementById('provEmail').value;
             if(!nombre) return alert('El nombre es obligatorio.');
 
-            await supabase.from('proveedores').insert([{ nombre, telefono, email }]);
+            await db.from('proveedores').insert([{ nombre, telefono, email }]);
             document.getElementById('provNombre').value = '';
             document.getElementById('provTelef').value = '';
             document.getElementById('provEmail').value = '';
