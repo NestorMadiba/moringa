@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Quiero Moringa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b; --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --border: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; flex-shrink: 0; }
+        .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 20px; text-transform: uppercase; line-height: 1.2; }
+        .sidebar-item { width: 80px; height: 75px; color: #94a3b8; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 11px; font-weight: 500; text-align: center; gap: 5px; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); color: var(--dark-bg); font-weight: 600; }
+        .sidebar-item svg { width: 24px; height: 24px; fill: currentColor; }
+        
+        .main-container { flex: 1; display: flex; flex-direction: column; padding: 25px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h1 { font-size: 24px; color: var(--dark-bg); }
+        
+        .dashboard-grid { display: grid; grid-template-columns: 300px 1fr; gap: 25px; }
+        .card { background: var(--white); border-radius: 12px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .card h2 { font-size: 18px; margin-bottom: 15px; color: var(--dark-bg); border-bottom: 2px dashed var(--border); padding-bottom: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #64748b; }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+        input:focus, select:focus { border-color: var(--primary-dark); outline: none; }
+        
+        .btn-action { background: var(--dark-bg); color: var(--white); border: none; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; }
+        .btn-action:hover { background: #334155; }
+        .btn-primary { background: var(--primary); color: var(--dark-bg); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .filters-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-bottom: 20px; background: var(--light-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
+        .kpi-box { background: var(--white); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .kpi-box span { display: block; font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .kpi-box b { display: block; font-size: 28px; color: var(--dark-bg); margin-top: 5px; }
+        
+        .table-responsive { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 15px; background: var(--light-bg); border-bottom: 2px solid var(--border); color: #64748b; font-size: 12px; text-transform: uppercase; position: sticky; top: 0; text-align: left; }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+        tr:hover { background-color: #f8fafc; }
+        
+        .ticket-badge { background: var(--dark-bg); color: var(--white); padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .pay-badge { background: #e2e8f0; color: #475569; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .list-items { margin: 0; padding-left: 15px; font-size: 13px; color: #475569; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">Quiero<br>Moringa</div>
+        <a href="index.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Ventas</a>
+        <a href="stock.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>Stock</a>
+        <a href="proveedores.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Prov</a>
+        <a href="usuarios.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Usuarios</a>
+        <a href="reportes.html" class="sidebar-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>Caja</a>
+    </nav>
+
+    <main class="main-container">
+        <header class="header">
+            <h1>Auditoría y Desglose de Ventas</h1>
+        </header>
+        
+        <div class="dashboard-grid">
+            <section class="card">
+                <h2>Caja Diaria</h2>
+                <div class="form-group">
+                    <label>Turno Laboral</label>
+                    <select id="turnoCaja"><option value="Mañana">Mañana</option><option value="Tarde">Tarde</option><option value="Jornada Completa">Jornada Completa</option></select>
+                </div>
+                <div class="form-group"><label>Monto de Apertura ($)</label><input type="number" id="montoInicial" placeholder="Ej: 5000"></div>
+                <button class="btn-action btn-primary" onclick="abrirCaja()">Abrir Turno</button>
+                <hr style="border:0; border-bottom:1px solid var(--border); margin: 25px 0;">
+                <button class="btn-action" onclick="cerrarCaja()">Cerrar Caja Activa</button>
+            </section>
+
+            <section class="card" style="padding: 0; border: none; box-shadow: none; background: transparent;">
+                <div class="filters-row">
+                    <div class="form-group" style="margin:0;"><label>Desde</label><input type="date" id="filtroDesde"></div>
+                    <div class="form-group" style="margin:0;"><label>Hasta</label><input type="date" id="filtroHasta"></div>
+                    <div class="form-group" style="margin:0;"><label>Cajero/Usuario</label><select id="filtroCajero"><option value="todos">Todos los Cajeros</option></select></div>
+                    <button class="btn-action btn-primary" onclick="generarReporte()" style="height: 44px; padding: 0 25px;">Buscar</button>
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi-box"><span>Efectivo</span><b id="kpiEfectivo">$0.00</b></div>
+                    <div class="kpi-box"><span>Medios Digitales</span><b id="kpiDigital">$0.00</b></div>
+                    <div class="kpi-box" style="background:#f0fdf4; border-color:var(--primary-dark);"><span>Total Facturado</span><b id="kpiTotal">$0.00</b></div>
+                </div>
+
+                <div class="card" style="padding:20px;">
+                    <h2 style="margin-top:0;">Detalle de Operaciones (Tickets)</h2>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Fecha y Hora</th>
+                                    <th>Artículos Vendidos</th>
+                                    <th>Forma Pago</th>
+                                    <th>Monto Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaTickets">
+                                <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:30px;">Presione buscar para ver el detalle de los tickets.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('filtroDesde').value = hoy;
+            document.getElementById('filtroHasta').value = hoy;
+            cargarFiltroUsuarios();
+        });
+
+        async function cargarFiltroUsuarios() {
+            const { data } = await db.from('usuarios').select('id, nombre').eq('estado', true);
+            const select = document.getElementById('filtroCajero');
+            if(data) data.forEach(u => select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
+        }
+
+        async function abrirCaja() {
+            const monto = parseFloat(document.getElementById('montoInicial').value);
+            const turno = document.getElementById('turnoCaja').value;
+            if(isNaN(monto) || monto < 0) return alert('Por favor, digite un monto válido.');
+            const userGuardado = localStorage.getItem('usuarioActivoQM');
+            if(!userGuardado) return alert('Debes iniciar sesión en la pestaña Ventas con tu PIN antes de abrir la caja.');
+            const usuario = JSON.parse(userGuardado);
+            const { data: cajaActiva } = await db.from('cajas').select('id').eq('estado', 'abierta').maybeSingle();
+            if(cajaActiva) return alert('Ya existe un turno de caja abierto.');
+
+            const { error } = await db.from('cajas').insert([{ id_usuario: usuario.id, monto_inicial: monto, turno: turno, estado: 'abierta' }]);
+            if(!error) { alert(`Turno iniciado por ${usuario.nombre}.`); document.getElementById('montoInicial').value = ''; }
+        }
+
+        async function cerrarCaja() {
+            const { data: caja } = await db.from('cajas').select('*, usuarios(nombre)').eq('estado', 'abierta').maybeSingle();
+            if(!caja) return alert('No hay caja abierta.');
+            const { data: vts } = await db.from('ventas').select('total').eq('id_caja', caja.id);
+            let totalRecaudado = vts ? vts.reduce((sum, v) => sum + parseFloat(v.total), 0) : 0;
+            let montoFinalCalculado = parseFloat(caja.monto_inicial) + totalRecaudado;
+
+            if(confirm(`Se cerrará el turno.\nCaja Inicial: $${caja.monto_inicial}\nVentas: $${totalRecaudado}\nTotal en caja: $${montoFinalCalculado}\n¿Continuar?`)) {
+                await db.from('cajas').update({ fecha_cierre: new Date().toISOString(), monto_final: montoFinalCalculado, estado: 'cerrada' }).eq('id', caja.id);
+                alert('Caja cerrada.');
+            }
+        }
+
+        async function generarReporte() {
+            const desde = document.getElementById('filtroDesde').value;
+            const hasta = document.getElementById('filtroHasta').value;
+            const idCajero = document.getElementById('filtroCajero').value;
+
+            if(!desde || !hasta) return alert('Seleccione un rango de fechas.');
+
+            let queryCajas = db.from('cajas').select('id').gte('fecha_apertura', desde + 'T00:00:00').lte('fecha_apertura', hasta + 'T23:59:59');
+            if (idCajero !== 'todos') queryCajas = queryCajas.eq('id_usuario', idCajero);
+            
+            const { data: cajasFiltradas } = await queryCajas;
+            if(!cajasFiltradas || cajasFiltradas.length === 0) return renderLimpiar();
+
+            const idsCajas = cajasFiltradas.map(c => c.id);
+
+            // Consulta poderosa: Trae las ventas e incluye los productos anidados
+            const { data: ventas } = await db.from('ventas')
+                .select('numero_ticket, total, metodo_pago, fecha, venta_detalles(cantidad, productos(nombre))')
+                .in('id_caja', idsCajas)
+                .order('fecha', { ascending: false });
+
+            if(!ventas || ventas.length === 0) return renderLimpiar();
+
+            let totEfectivo = 0; let totDigital = 0; let totGeneral = 0;
+            const tbody = document.getElementById('tablaTickets');
+            tbody.innerHTML = '';
+
+            ventas.forEach(v => {
+                const monto = parseFloat(v.total);
+                totGeneral += monto;
+                if(v.metodo_pago.toLowerCase() === 'efectivo') totEfectivo += monto;
+                else totDigital += monto;
+
+                // Formatear Fecha
+                const fechaFormateada = new Date(v.fecha).toLocaleString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+                
+                // Formatear lista de artículos
+                let htmlArticulos = '<ul class="list-items">';
+                v.venta_detalles.forEach(detalle => {
+                    const nombreProd = detalle.productos ? detalle.productos.nombre : 'Eliminado';
+                    htmlArticulos += `<li>${detalle.cantidad}x ${nombreProd}</li>`;
+                });
+                htmlArticulos += '</ul>';
+
+                // Insertar fila
+                tbody.innerHTML += `
+                    <tr>
+                        <td><span class="ticket-badge">#${v.numero_ticket || '-'}</span></td>
+                        <td style="color:#64748b; font-size:13px;">${fechaFormateada}</td>
+                        <td>${htmlArticulos}</td>
+                        <td><span class="pay-badge">${v.metodo_pago}</span></td>
+                        <td style="font-weight:bold; color:var(--dark-bg); font-size:16px;">$${monto.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('kpiEfectivo').innerText = `$${totEfectivo.toFixed(2)}`;
+            document.getElementById('kpiDigital').innerText = `$${totDigital.toFixed(2)}`;
+            document.getElementById('kpiTotal').innerText = `$${totGeneral.toFixed(2)}`;
+        }
+
+        function renderLimpiar() {
+            document.getElementById('kpiEfectivo').innerText = `$0.00`; document.getElementById('kpiDigital').innerText = `$0.00`; document.getElementById('kpiTotal').innerText = `$0.00`;
+            document.getElementById('tablaTickets').innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px;">No hay tickets en estas fechas.</td></tr>`;
+        }
+    </script>
+</body>
+</html>
