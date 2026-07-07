@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Quiero Moringa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b; --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --danger: #ef4444; --border: #e2e8f0; --warning: #f59e0b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; }
+        .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 20px; text-transform: uppercase; line-height: 1.2; }
+        .sidebar-item { width: 80px; height: 75px; color: #94a3b8; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 11px; font-weight: 500; text-align: center; gap: 5px; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); color: var(--dark-bg); font-weight: 600; }
+        .sidebar-item svg { width: 24px; height: 24px; fill: currentColor; }
+
+        .main-container { flex: 1; display: flex; flex-direction: column; padding: 25px; overflow: hidden; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h1 { font-size: 24px; color: var(--dark-bg); }
+        
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .search-bar { padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; width: 300px; font-size: 14px; outline: none; transition: 0.2s; }
+        .search-bar:focus { border-color: var(--primary-dark); }
+        .btn-add { background: var(--dark-bg); color: var(--white); border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-add:hover { background: #334155; }
+
+        .layout-stock { display: flex; gap: 20px; height: calc(100% - 75px); overflow: hidden; }
+        .table-section { flex: 2; background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow-y: auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .form-section { flex: 1; background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); display: none; flex-direction: column; gap: 15px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 15px; background: var(--light-bg); border-bottom: 2px solid var(--border); color: #64748b; font-size: 13px; text-transform: uppercase; position: sticky; top: 0; }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        tr:hover { background-color: #f1f5f9; }
+        
+        .alert-row { background-color: #fffbeb !important; }
+        .badge-alert { background: var(--warning); color: var(--white); padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 8px; }
+        .code-pill { background: var(--light-bg); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; color: var(--dark-bg); }
+
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #64748b; }
+        .form-group input, .form-group select { padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none;}
+        .form-group input:focus { border-color: var(--primary-dark); }
+        .form-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-save { background: var(--primary); color: var(--dark-bg); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; flex: 1; }
+        .btn-cancel { background: #e2e8f0; color: #475569; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">Quiero<br>Moringa</div>
+        <a href="index.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Ventas</a>
+        <a href="stock.html" class="sidebar-item active"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>Stock</a>
+        <a href="proveedores.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Prov</a>
+        <a href="usuarios.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Usuarios</a>
+        <a href="reportes.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>Caja</a>
+    </nav>
+
+    <main class="main-container">
+        <header class="header">
+            <h1>Gestión de Inventario</h1>
+            <div class="header-actions">
+                <input type="text" id="buscadorStock" class="search-bar" placeholder="🔍 Buscar por nombre o código..." onkeyup="filtrarTabla()">
+                <button class="btn-add" onclick="abrirFormulario()">+ Nuevo Producto</button>
+            </div>
+        </header>
+
+        <div class="layout-stock">
+            <section class="table-section">
+                <table id="tablaCompletaStock">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th>Precio Venta</th>
+                            <th>Stock Disponible</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaProductos"></tbody>
+                </table>
+            </section>
+
+            <section class="form-section" id="formSection">
+                <h3 id="formTitle" style="font-size: 18px; border-bottom: 2px dashed var(--border); padding-bottom:10px;">Nuevo Producto</h3>
+                <input type="hidden" id="prodId">
+                <div class="form-group"><label>Código de Barras</label><input type="text" id="prodCodigo" required></div>
+                <div class="form-group"><label>Nombre del Producto</label><input type="text" id="prodNombre" required></div>
+                <div class="form-group"><label>Rubro</label><input type="text" id="prodRubro" placeholder="Ej: Suplementos, Semillas"></div>
+                <div class="form-group"><label>Tipo de Unidad</label>
+                    <select id="prodUnidad">
+                        <option value="unidad">Unidad</option>
+                        <option value="kg">Kilogramo (Kg)</option>
+                        <option value="gramos">Gramos (g)</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;"><label>Costo ($)</label><input type="number" id="prodCosto" step="0.01" required></div>
+                    <div class="form-group" style="flex:1;"><label>Precio Venta ($)</label><input type="number" id="prodPrecio" step="0.01" required></div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;"><label>Stock Actual</label><input type="number" id="prodStock" step="0.001" value="0"></div>
+                    <div class="form-group" style="flex:1;"><label>Stock Mínimo</label><input type="number" id="prodMinimo" step="0.001" value="0"></div>
+                </div>
+                <div class="form-group"><label>Proveedor Asignado</label><select id="prodProveedor"><option value="">Ninguno</option></select></div>
+                <div class="form-actions">
+                    <button class="btn-cancel" type="button" onclick="cerrarFormulario()">Cancelar</button>
+                    <button class="btn-save" onclick="guardarProducto()">Guardar</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = "https://TU_PROYECTO.supabase.co"; 
+        const SUPABASE_KEY = "TU_ANON_KEY";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        document.addEventListener("DOMContentLoaded", () => { cargarProductos(); cargarComboProveedores(); });
+
+        // Buscador Dinámico en Javascript puro
+        function filtrarTabla() {
+            const input = document.getElementById("buscadorStock");
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById("tablaCompletaStock");
+            const tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let tdCodigo = tr[i].getElementsByTagName("td")[0];
+                let tdNombre = tr[i].getElementsByTagName("td")[1];
+                if (tdCodigo || tdNombre) {
+                    let txtValueCod = tdCodigo.textContent || tdCodigo.innerText;
+                    let txtValueNom = tdNombre.textContent || tdNombre.innerText;
+                    if (txtValueCod.toUpperCase().indexOf(filter) > -1 || txtValueNom.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+
+        async function cargarProductos() {
+            const { data } = await db.from('productos').select('*').eq('estado', true).order('nombre', { ascending: true });
+            const tbody = document.getElementById('listaProductos');
+            tbody.innerHTML = '';
+            if(data) {
+                data.forEach(p => {
+                    const necesitaReponer = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
+                    const filaClase = necesitaReponer ? 'class="alert-row"' : '';
+                    const alertBadge = necesitaReponer ? '<span class="badge-alert">Bajo Stock</span>' : '';
+
+                    tbody.innerHTML += `
+                        <tr ${filaClase}>
+                            <td><span class="code-pill">${p.codigo_barras}</span></td>
+                            <td><strong style="color:var(--dark-bg); font-size:15px;">${p.nombre}</strong><br><span style="font-size:12px; color:#64748b;">${p.rubro}</span></td>
+                            <td style="text-transform:uppercase; font-size:12px; font-weight:bold; color:#64748b;">${p.tipo_unidad}</td>
+                            <td style="font-weight:600; color:var(--primary-dark);">$ ${parseFloat(p.precio_venta).toFixed(2)}</td>
+                            <td style="font-weight:600;">${parseFloat(p.stock_actual)} ${alertBadge}</td>
+                            <td>
+                                <button style="background:#e2e8f0; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; margin-right:5px;" onclick="editarProducto('${p.id}')">✏️ Editar</button>
+                                <button style="background:#fee2e2; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; color:red;" onclick="eliminarProducto('${p.id}')">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function cargarComboProveedores() {
+            const { data } = await db.from('proveedores').select('id, nombre');
+            const combo = document.getElementById('prodProveedor');
+            if(data) data.forEach(prov => combo.innerHTML += `<option value="${prov.id}">${prov.nombre}</option>`);
+        }
+
+        function abrirFormulario() { document.getElementById('formSection').style.display = 'flex'; document.getElementById('formTitle').innerText = "Nuevo Producto"; document.getElementById('prodId').value = ""; document.getElementById('prodCodigo').value = ""; document.getElementById('prodNombre').value = ""; document.getElementById('prodRubro').value = "General"; document.getElementById('prodCosto').value = ""; document.getElementById('prodPrecio').value = ""; document.getElementById('prodStock').value = "0"; document.getElementById('prodMinimo').value = "0"; document.getElementById('prodProveedor').value = ""; }
+        function cerrarFormulario() { document.getElementById('formSection').style.display = 'none'; }
+
+        async function editarProducto(id) {
+            const { data } = await db.from('productos').select('*').eq('id', id).single();
+            if (data) {
+                abrirFormulario();
+                document.getElementById('formTitle').innerText = "Editar Producto"; document.getElementById('prodId').value = data.id; document.getElementById('prodCodigo').value = data.codigo_barras; document.getElementById('prodNombre').value = data.nombre; document.getElementById('prodRubro').value = data.rubro; document.getElementById('prodUnidad').value = data.tipo_unidad; document.getElementById('prodCosto').value = data.costo; document.getElementById('prodPrecio').value = data.precio_venta; document.getElementById('prodStock').value = data.stock_actual; document.getElementById('prodMinimo').value = data.stock_minimo; document.getElementById('prodProveedor').value = data.id_proveedor || "";
+            }
+        }
+
+        async function guardarProducto() {
+            const id = document.getElementById('prodId').value;
+            const payload = { codigo_barras: document.getElementById('prodCodigo').value, nombre: document.getElementById('prodNombre').value, rubro: document.getElementById('prodRubro').value, tipo_unidad: document.getElementById('prodUnidad').value, costo: parseFloat(document.getElementById('prodCosto').value), precio_venta: parseFloat(document.getElementById('prodPrecio').value), stock_actual: parseFloat(document.getElementById('prodStock').value), stock_minimo: parseFloat(document.getElementById('prodMinimo').value), id_proveedor: document.getElementById('prodProveedor').value || null };
+            if(!payload.codigo_barras || !payload.nombre) return alert("Completa los campos obligatorios.");
+            if (id) await db.from('productos').update(payload).eq('id', id); else await db.from('productos').insert([payload]);
+            cerrarFormulario(); cargarProductos(); document.getElementById('buscadorStock').value = '';
+        }
+
+        async function eliminarProducto(id) {
+            if (confirm("¿Confirmas la baja de este producto?")) { await db.from('productos').update({ estado: false }).eq('id', id); cargarProductos(); }
+        }
+    </script>
+</body>
+</html>
