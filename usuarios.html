@@ -93,7 +93,7 @@
         document.addEventListener("DOMContentLoaded", cargarUsuarios);
 
         async function cargarUsuarios() {
-            const { data } = await supabase.from('usuarios').select('*').eq('estado', true);
+            const { data } = await db.from('usuarios').select('*').eq('estado', true);
             const tbody = document.getElementById('tablaUser'); tbody.innerHTML = '';
             if(data) {
                 data.forEach(u => {
@@ -108,7 +108,7 @@
             const pin = document.getElementById('usrPin').value;
             if(!nombre || !pin) return alert('Completa todos los campos obligatorios.');
 
-            await supabase.from('usuarios').insert([{ nombre, rol, pin }]);
+            await db.from('usuarios').insert([{ nombre, rol, pin }]);
             document.getElementById('usrNombre').value = '';
             document.getElementById('usrPin').value = '';
             cargarUsuarios();
