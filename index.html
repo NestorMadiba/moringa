@@ -7,18 +7,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --primary: #7cfc00;
-            --primary-dark: #65cc00;
-            --dark-bg: #0f172a;
-            --sidebar-bg: #1e293b;
-            --light-bg: #f8fafc;
-            --text-main: #334155;
-            --white: #ffffff;
-            --danger: #ef4444;
-            --border: #e2e8f0;
+            --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b;
+            --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --danger: #ef4444; --border: #e2e8f0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+        
+        /* PANTALLA DE LOGIN (PIN) */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--dark-bg); display: flex; justify-content: center; align-items: center; z-index: 9999; flex-direction: column; }
+        .login-box { background: var(--white); padding: 40px; border-radius: 16px; text-align: center; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-box h2 { color: var(--dark-bg); margin-bottom: 5px; font-size: 24px;}
+        .login-box p { color: #64748b; font-size: 14px; margin-bottom: 20px; }
+        .login-box input { width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 8px; text-align: center; font-size: 24px; letter-spacing: 8px; margin-bottom: 20px; outline: none; transition: 0.3s;}
+        .login-box input:focus { border-color: var(--primary-dark); }
+        .login-box button { background: var(--primary); color: var(--dark-bg); border: none; padding: 15px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        .login-box button:hover { background: var(--primary-dark); }
         
         /* Sidebar Global */
         .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; }
@@ -31,92 +34,92 @@
         .main-container { flex: 1; display: flex; flex-direction: column; padding: 25px; overflow: hidden; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .header h1 { font-size: 24px; color: var(--dark-bg); font-weight: 700; }
-        .header .info-sucursal { font-size: 14px; color: #64748b; background: var(--white); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); }
+        .info-sucursal { font-size: 14px; color: #64748b; background: var(--white); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); display: flex; gap: 10px; align-items: center;}
+        .btn-logout { background: #fee2e2; color: var(--danger); border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold;}
         
         .pos-grid { display: flex; gap: 25px; height: calc(100% - 75px); }
-        .ticket-section { flex: 2; background: var(--white); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .ticket-section { flex: 2; background: var(--white); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--border); }
         
+        /* Buscador Inteligente */
         .search-container { position: relative; margin-bottom: 20px; }
-        .search-container input { width: 100%; padding: 16px; padding-left: 45px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; transition: border-color 0.2s; background-color: var(--light-bg); }
+        .search-container input { width: 100%; padding: 16px; padding-left: 45px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; transition: 0.2s; background-color: var(--light-bg); }
         .search-container input:focus { border-color: var(--primary-dark); outline: none; background-color: var(--white); }
         .search-container::before { content: "🔍"; position: absolute; left: 15px; top: 16px; font-size: 18px; }
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; max-height: 250px; overflow-y: auto; display: none; z-index: 10; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+        .search-item { padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
+        .search-item:hover { background: var(--light-bg); }
+        .search-item-name { font-weight: 600; color: var(--dark-bg); }
+        .search-item-price { font-weight: bold; color: var(--primary-dark); }
 
         .table-wrapper { flex: 1; overflow-y: auto; }
         .cart-table { width: 100%; border-collapse: collapse; text-align: left; }
         .cart-table th { padding: 12px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; }
         .cart-table td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        
         .qty-input { width: 85px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 15px; font-weight: 600; }
         .btn-delete { background: #fee2e2; color: var(--danger); border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-delete:hover { background: var(--danger); color: var(--white); }
 
         /* Lateral Pago */
-        .checkout-section { flex: 1; background: var(--white); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .checkout-section { flex: 1; background: var(--white); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border); }
         .totals-box { background: var(--light-bg); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px; color: #64748b; }
-        .total-row.grand-total { font-size: 32px; font-weight: 800; color: var(--dark-bg); border-top: 2px dashed var(--border); padding-top: 15px; margin-top: 15px; margin-bottom: 0; }
+        .total-row.grand-total { font-size: 32px; font-weight: 800; color: var(--dark-bg); border-top: 2px dashed var(--border); padding-top: 15px; margin-top: 15px; }
         
         .payment-title { font-size: 14px; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 12px; }
         .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-        .btn-pay-method { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--white); cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; color: var(--text-main); }
-        .btn-pay-method:hover { border-color: var(--primary-dark); background: var(--light-bg); }
+        .btn-pay-method { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--white); cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text-main); }
         .btn-pay-method.active { background: var(--dark-bg); color: var(--white); border-color: var(--dark-bg); }
-
-        .btn-submit-sale { background: var(--primary); color: var(--dark-bg); border: none; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; transition: background 0.2s; box-shadow: 0 4px 10px rgba(124, 252, 0, 0.3); }
-        .btn-submit-sale:hover { background: var(--primary-dark); }
+        .btn-submit-sale { background: var(--primary); color: var(--dark-bg); border: none; padding: 20px; border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer; text-transform: uppercase; width: 100%; box-shadow: 0 4px 10px rgba(124, 252, 0, 0.3); }
     </style>
 </head>
 <body>
 
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2>Quiero Moringa</h2>
+            <p>Ingresa tu PIN de acceso al sistema</p>
+            <input type="password" id="inputPin" maxlength="6" placeholder="****" autofocus autocomplete="off">
+            <button onclick="validarLogin()">Desbloquear Caja</button>
+        </div>
+    </div>
+
     <nav class="sidebar">
         <div class="sidebar-brand">Quiero<br>Moringa</div>
-        <a href="index.html" class="sidebar-item active">
-            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-            Ventas
-        </a>
-        <a href="stock.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
-            Stock
-        </a>
-        <a href="proveedores.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-            Proveedores
-        </a>
-        <a href="usuarios.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            Usuarios
-        </a>
-        <a href="reportes.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>
-            Reportes/Caja
-        </a>
+        <a href="index.html" class="sidebar-item active"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Ventas</a>
+        <a href="stock.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>Stock</a>
+        <a href="proveedores.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Prov</a>
+        <a href="usuarios.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Usuarios</a>
+        <a href="reportes.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>Caja</a>
     </nav>
 
     <main class="main-container">
         <header class="header">
             <h1>Nueva Venta</h1>
-            <div class="info-sucursal">📍 Calle Mitre 405, Salta | <b>Mostrador Activo</b></div>
+            <div class="info-sucursal">
+                📍 Mitre 405 | Cajero/a: <b id="nombreCajeroTexto">Ninguno</b>
+                <button class="btn-logout" onclick="cerrarSesion()">Salir</button>
+            </div>
         </header>
 
         <div class="pos-grid">
             <section class="ticket-section">
                 <div class="search-container">
-                    <input type="text" id="barcodeScanner" placeholder="Escanea el código de barras aquí..." autofocus autocomplete="off">
+                    <input type="text" id="barcodeScanner" placeholder="Pasa la lectora o escribe el nombre del producto..." autocomplete="off">
+                    <div id="searchResults" class="search-results"></div>
                 </div>
+                
                 <div class="table-wrapper">
                     <table class="cart-table">
                         <thead>
                             <tr>
                                 <th>Detalle Producto</th>
-                                <th>Variante</th>
-                                <th style="text-align: center;">Cantidad / Peso</th>
+                                <th>Unidad</th>
+                                <th style="text-align: center;">Cantidad</th>
                                 <th>Precio Unit.</th>
                                 <th>Subtotal</th>
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody id="cartItems">
-                            </tbody>
+                        <tbody id="cartItems"></tbody>
                     </table>
                 </div>
             </section>
@@ -124,16 +127,9 @@
             <section class="checkout-section">
                 <div>
                     <div class="totals-box">
-                        <div class="total-row">
-                            <span>Subtotal Ventas</span>
-                            <span id="txtSubtotal">$ 0,00</span>
-                        </div>
-                        <div class="total-row grand-total">
-                            <span>TOTAL</span>
-                            <span id="txtTotal">$ 0,00</span>
-                        </div>
+                        <div class="total-row"><span>Subtotal</span><span id="txtSubtotal">$ 0,00</span></div>
+                        <div class="total-row grand-total"><span>TOTAL</span><span id="txtTotal">$ 0,00</span></div>
                     </div>
-
                     <div class="payment-title">Método de Pago</div>
                     <div class="payment-methods">
                         <button class="btn-pay-method active" onclick="setMetodo('Efectivo', this)">Efectivo</button>
@@ -142,76 +138,143 @@
                         <button class="btn-pay-method" onclick="setMetodo('Crédito', this)">Crédito</button>
                     </div>
                 </div>
-
-                <button class="btn-submit-sale" onclick="finalizarCobro()">Finalizar y Registrar</button>
+                <button class="btn-submit-sale" onclick="finalizarCobro()">Finalizar Venta</button>
             </section>
         </div>
     </main>
 
     <script>
-        // REEMPLAZAR CON TUS CREDENCIALES DE SUPABASE
-        const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co";
+        // 1. TUS CREDENCIALES
+        const SUPABASE_URL = "
+https://ibjllxtwhihrtgfbammi.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let carrito = [];
         let metodoPago = "Efectivo";
-        let cajaAbiertaId = null; // Se debe validar en producción que exista un turno abierto
-
+        let cajaAbiertaId = null;
+        let usuarioActual = null;
+        
         const barcodeScanner = document.getElementById('barcodeScanner');
+        const searchResults = document.getElementById('searchResults');
+        const loginOverlay = document.getElementById('loginOverlay');
+        const inputPin = document.getElementById('inputPin');
 
-        // Mantener foco automático en el buscador para agilizar el uso de la lectora de barras
-        document.body.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+        // 2. SISTEMA DE LOGIN (Bloqueo inicial)
+        window.onload = () => {
+            const userGuardado = localStorage.getItem('usuarioActivoQM');
+            if (userGuardado) {
+                usuarioActual = JSON.parse(userGuardado);
+                loginOverlay.style.display = 'none';
+                document.getElementById('nombreCajeroTexto').innerText = usuarioActual.nombre;
                 barcodeScanner.focus();
             }
+        };
+
+        inputPin.addEventListener('keypress', (e) => { if (e.key === 'Enter') validarLogin(); });
+
+        async function validarLogin() {
+            const pin = inputPin.value.trim();
+            const { data, error } = await db.from('usuarios').select('*').eq('pin', pin).eq('estado', true).maybeSingle();
+            
+            if (data) {
+                localStorage.setItem('usuarioActivoQM', JSON.stringify(data));
+                usuarioActual = data;
+                loginOverlay.style.display = 'none';
+                document.getElementById('nombreCajeroTexto').innerText = data.nombre;
+                barcodeScanner.focus();
+            } else {
+                alert('PIN incorrecto. Intente nuevamente.');
+                inputPin.value = '';
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('usuarioActivoQM');
+            location.reload(); // Recarga la página y vuelve a mostrar el candado
+        }
+
+        // 3. BUSCADOR INTELIGENTE (Nombre y Código)
+        let timeoutBuscador = null;
+        
+        barcodeScanner.addEventListener('input', function() {
+            clearTimeout(timeoutBuscador);
+            const texto = this.value.trim();
+            
+            if (texto.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            // Esperar 300ms después de escribir para no saturar la base de datos
+            timeoutBuscador = setTimeout(async () => {
+                const { data } = await db.from('productos')
+                    .select('*')
+                    .eq('estado', true)
+                    .or(`codigo_barras.eq.${texto},nombre.ilike.%${texto}%`)
+                    .limit(10); // Trae hasta 10 coincidencias
+
+                if (data && data.length > 0) {
+                    searchResults.innerHTML = '';
+                    data.forEach(prod => {
+                        searchResults.innerHTML += `
+                            <div class="search-item" onclick="agregarAlCarritoId('${prod.id}')">
+                                <div>
+                                    <div class="search-item-name">${prod.nombre}</div>
+                                    <div style="font-size:12px; color:#64748b;">Cod: ${prod.codigo_barras} | ${prod.tipo_unidad}</div>
+                                </div>
+                                <div class="search-item-price">$${parseFloat(prod.precio_venta).toFixed(2)}</div>
+                            </div>
+                        `;
+                    });
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
+                }
+            }, 300);
         });
 
-        // Evento de captura del lector de código de barras (Simula presionar ENTER al final)
+        // Evento exclusivo para la LECTORA (al escuchar el ENTER final)
         barcodeScanner.addEventListener('keypress', async function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
+                searchResults.style.display = 'none';
                 const codigo = this.value.trim();
                 if (codigo) {
-                    await buscarYAgregar(codigo);
+                    // Busca por código de barra exacto
+                    const { data } = await db.from('productos').select('*').eq('codigo_barras', codigo).eq('estado', true).maybeSingle();
+                    if (data) {
+                        agregarDirecto(data);
+                    } else {
+                        alert('Código no encontrado.');
+                    }
                 }
                 this.value = '';
             }
         });
 
-        async function buscarYAgregar(codigo) {
-            // Consulta real a la base de datos de Supabase
-            const { data, error } = await db.from('productos').select('*').eq('codigo_barras', codigo).eq('estado', true).single();
+        async function agregarAlCarritoId(idProducto) {
+            searchResults.style.display = 'none';
+            const { data } = await db.from('productos').select('*').eq('id', idProducto).single();
+            if(data) agregarDirecto(data);
+            barcodeScanner.value = '';
+            barcodeScanner.focus();
+        }
 
-            if (error || !data) {
-                alert('El producto no está registrado o se encuentra inactivo.');
-                return;
-            }
-
-            const itemEnCarrito = carrito.find(item => item.id === data.id);
+        // 4. LÓGICA DE CARRITO Y VENTAS (Igual a la versión anterior)
+        function agregarDirecto(producto) {
+            const itemEnCarrito = carrito.find(item => item.id === producto.id);
             if (itemEnCarrito) {
-                if (data.tipo_unidad === 'unidad') {
-                    itemEnCarrito.cantidad += 1;
-                }
+                if (producto.tipo_unidad === 'unidad') itemEnCarrito.cantidad += 1;
             } else {
-                // Por defecto añade 1 unidad o 1 kg/gr para modificar manualmente en la celda
-                carrito.push({
-                    id: data.id,
-                    nombre: data.nombre,
-                    tipo_unidad: data.tipo_unidad,
-                    precio_venta: parseFloat(data.precio_venta),
-                    cantidad: 1
-                });
+                carrito.push({ id: producto.id, nombre: producto.nombre, tipo_unidad: producto.tipo_unidad, precio_venta: parseFloat(producto.precio_venta), cantidad: 1 });
             }
             renderizarCarrito();
         }
 
         function cambiarCantidad(id, valor) {
             const item = carrito.find(i => i.id === id);
-            if (item) {
-                item.cantidad = parseFloat(valor) || 0;
-                renderizarCarrito();
-            }
+            if (item) { item.cantidad = parseFloat(valor) || 0; renderizarCarrito(); }
         }
 
         function removerItem(id) {
@@ -227,83 +290,47 @@
 
         function renderizarCarrito() {
             const tbody = document.getElementById('cartItems');
-            tbody.innerHTML = '';
-            let total = 0;
-
+            tbody.innerHTML = ''; let total = 0;
             carrito.forEach(item => {
-                const subtotal = item.precio_venta * item.cantidad;
-                total += subtotal;
+                const subtotal = item.precio_venta * item.cantidad; total += subtotal;
                 const step = item.tipo_unidad === 'unidad' ? '1' : '0.001';
-
                 tbody.innerHTML += `
                     <tr>
                         <td style="font-weight: 600;">${item.nombre}</td>
-                        <td><span style="background: #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 12px; text-transform: uppercase;">${item.tipo_unidad}</span></td>
-                        <td style="text-align: center;">
-                            <input type="number" class="qty-input" value="${item.cantidad}" step="${step}" min="0" onchange="cambiarCantidad('${item.id}', this.value)">
-                        </td>
-                        <td style="font-weight: 500;">$ ${item.precio_venta.toFixed(2)}</td>
+                        <td style="text-transform:uppercase; font-size:12px;">${item.tipo_unidad}</td>
+                        <td style="text-align: center;"><input type="number" class="qty-input" value="${item.cantidad}" step="${step}" min="0" onchange="cambiarCantidad('${item.id}', this.value)"></td>
+                        <td>$ ${item.precio_venta.toFixed(2)}</td>
                         <td style="font-weight: 700; color: var(--dark-bg);">$ ${subtotal.toFixed(2)}</td>
                         <td><button class="btn-delete" onclick="removerItem('${item.id}')">✕</button></td>
                     </tr>
                 `;
             });
-
             document.getElementById('txtSubtotal').innerText = `$ ${total.toFixed(2)}`;
             document.getElementById('txtTotal').innerText = `$ ${total.toFixed(2)}`;
         }
 
         async function finalizarCobro() {
-            if (carrito.length === 0) {
-                alert('El carrito se encuentra vacío.');
-                return;
-            }
-
-            // Validar/Obtener última caja abierta de la sucursal
-            const { data: caja } = await db.from('cajas').select('id').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
+            if (carrito.length === 0) return alert('El carrito está vacío.');
             
-            if (!caja || caja.length === 0) {
-                alert('No se puede realizar la venta porque no hay un turno de caja abierto. Diríjase a Reportes/Caja.');
-                return;
-            }
+            const { data: caja } = await db.from('cajas').select('id').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
+            if (!caja || caja.length === 0) return alert('No hay un turno de caja abierto. Diríjase a Reportes/Caja.');
+            
             cajaAbiertaId = caja[0].id;
-
             let totalVenta = carrito.reduce((sum, item) => sum + (item.precio_venta * item.cantidad), 0);
 
-            // 1. Registrar Venta principal
-            const { data: venta, error: errorVenta } = await db.from('ventas').insert([{
-                id_caja: cajaAbiertaId,
-                total: totalVenta,
-                metodo_pago: metodoPago
-            }]).select().single();
+            const { data: venta, error } = await db.from('ventas').insert([{ id_caja: cajaAbiertaId, total: totalVenta, metodo_pago: metodoPago }]).select().single();
+            if (error) return alert('Error al registrar venta.');
 
-            if (errorVenta) {
-                alert('Error al registrar la venta principal.');
-                return;
-            }
-
-            // 2. Registrar detalles y descontar stock correspondientemente
             for (let item of carrito) {
-                await db.from('venta_detalles').insert([{
-                    id_venta: venta.id,
-                    id_producto: item.id,
-                    cantidad: item.cantidad,
-                    precio_unitario: item.precio_venta,
-                    subtotal: item.precio_venta * item.cantidad
-                }]);
-
-                // Descontar stock usando RPC o lectura-escritura directa
+                await db.from('venta_detalles').insert([{ id_venta: venta.id, id_producto: item.id, cantidad: item.cantidad, precio_unitario: item.precio_venta, subtotal: item.precio_venta * item.cantidad }]);
                 const { data: prod } = await db.from('productos').select('stock_actual').eq('id', item.id).single();
                 if (prod) {
-                    let nuevoStock = parseFloat(prod.stock_actual) - item.cantidad;
-                    await db.from('productos').update({ stock_actual: nuevoStock }).eq('id', item.id);
+                    await db.from('productos').update({ stock_actual: parseFloat(prod.stock_actual) - item.cantidad }).eq('id', item.id);
                 }
             }
 
-            alert('Venta procesada de manera exitosa.');
-            carrito = [];
-            renderizarCarrito();
-            barcodeScanner.focus();
+            alert('Venta registrada con éxito.');
+            carrito = []; renderizarCarrito(); barcodeScanner.focus();
         }
     </script>
 </body>
