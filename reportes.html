@@ -7,11 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --primary: #7cfc00; --sidebar-bg: #1e293b; --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --border: #e2e8f0; --dark-bg: #0f172a;
+            --primary: #7cfc00; --primary-dark: #65cc00; --dark-bg: #0f172a; --sidebar-bg: #1e293b;
+            --light-bg: #f8fafc; --text-main: #334155; --white: #ffffff; --border: #e2e8f0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--light-bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; }
+        
+        /* Sidebar Global */
+        .sidebar { width: 100px; background-color: var(--sidebar-bg); display: flex; flex-direction: column; align-items: center; padding-top: 20px; gap: 10px; flex-shrink: 0; }
         .sidebar-brand { color: var(--primary); font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 20px; text-transform: uppercase; line-height: 1.2; }
         .sidebar-item { width: 80px; height: 75px; color: #94a3b8; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; text-decoration: none; font-size: 11px; font-weight: 500; text-align: center; gap: 5px; }
         .sidebar-item:hover, .sidebar-item.active { background-color: var(--primary); color: var(--dark-bg); font-weight: 600; }
@@ -21,127 +24,257 @@
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .header h1 { font-size: 24px; color: var(--dark-bg); }
         
-        .grid-reportes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card-rep { background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
-        .form-caja { display: flex; gap: 10px; margin-top: 15px; }
-        input, button { padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
-        button { cursor: pointer; font-weight: bold; }
-        .btn-caja-act { background: var(--primary); color: var(--dark-bg); border: none; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
+        .card { background: var(--white); border-radius: 12px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .card h2 { font-size: 18px; margin-bottom: 15px; color: var(--dark-bg); border-bottom: 2px dashed var(--border); padding-bottom: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        .form-group label { font-size: 13px; font-weight: 600; color: #64748b; }
+        input, select, button { padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; }
+        input:focus, select:focus { border-color: var(--primary-dark); outline: none; }
+        
+        .btn-action { background: var(--dark-bg); color: var(--white); border: none; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; }
+        .btn-action:hover { background: #334155; }
+        .btn-primary { background: var(--primary); color: var(--dark-bg); }
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        /* Filtros y Tablas */
+        .filters-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; margin-bottom: 20px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .kpi-box { background: var(--light-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); text-align: center; }
+        .kpi-box span { display: block; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .kpi-box b { display: block; font-size: 24px; color: var(--dark-bg); margin-top: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; }
+        th { color: #64748b; font-weight: 600; font-size: 12px; text-transform: uppercase; }
     </style>
 </head>
 <body>
     <nav class="sidebar">
         <div class="sidebar-brand">Quiero<br>Moringa</div>
-        <a href="index.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-            Ventas
-        </a>
-        <a href="stock.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
-            Stock
-        </a>
-        <a href="proveedores.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-            Proveedores
-        </a>
-        <a href="usuarios.html" class="sidebar-item">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-            Usuarios
-        </a>
-        <a href="reportes.html" class="sidebar-item active">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>
-            Reportes/Caja
-        </a>
+        <a href="index.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Ventas</a>
+        <a href="stock.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>Stock</a>
+        <a href="proveedores.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Prov</a>
+        <a href="usuarios.html" class="sidebar-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Usuarios</a>
+        <a href="reportes.html" class="sidebar-item active"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H5v-2h4V7h2v4h4v2z"/></svg>Reportes/Caja</a>
     </nav>
 
     <main class="main-container">
         <header class="header">
-            <h1>Control de Caja y Auditoría</h1>
+            <h1>Auditoría y Reportes de Ventas</h1>
         </header>
         
-        <div class="grid-reportes">
-            <section class="card-rep">
-                <h2>Arqueo de Turno Diario</h2>
-                <p style="margin-top:5px; color:#64748b;">Apertura y Cierre Manual de Caja Central.</p>
+        <div class="dashboard-grid">
+            <!-- Columna Izquierda: Control de Caja Fuerte -->
+            <section class="card">
+                <h2>Control de Caja Diaria</h2>
+                <div class="form-group">
+                    <label>Turno Laboral</label>
+                    <select id="turnoCaja">
+                        <option value="Mañana">Mañana</option>
+                        <option value="Tarde">Tarde</option>
+                        <option value="Jornada Completa">Jornada Completa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto de Apertura ($)</label>
+                    <input type="number" id="montoInicial" placeholder="Ej: 5000">
+                </div>
+                <button class="btn-action btn-primary" onclick="abrirCaja()">Abrir Turno de Caja</button>
                 
-                <div class="form-caja">
-                    <input type="number" id="montoInicial" placeholder="Monto Inicial Arqueo ($)">
-                    <button class="btn-caja-act" onclick="abrirCaja()">Abrir Caja</button>
-                </div>
-                <div class="form-caja" style="margin-top:20px;">
-                    <button style="background:var(--dark-bg); color:white; width:100%;" onclick="cerrarCaja()">Efectuar Cierre de Caja Actual</button>
-                </div>
+                <hr style="border:0; border-bottom:1px solid var(--border); margin: 25px 0;">
+                
+                <button class="btn-action" onclick="cerrarCaja()">Cerrar Caja Activa</button>
             </section>
 
-            <section class="card-rep">
-                <h2>Ventas por Rubro de Producto</h2>
-                <ul id="ventasRubro" style="margin-top:15px; list-style:none; padding:0;">
-                    <li style="padding:8px 0; border-bottom:1px solid var(--border);">Cargando estadísticas...</li>
-                </ul>
+            <!-- Columna Derecha: Reportes Avanzados -->
+            <section class="card">
+                <h2>Reportes por Fecha y Empleado</h2>
+                
+                <div class="filters-row">
+                    <div class="form-group" style="margin:0;">
+                        <label>Desde Fecha</label>
+                        <input type="date" id="filtroDesde">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Hasta Fecha</label>
+                        <input type="date" id="filtroHasta">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>Cajero/Usuario</label>
+                        <select id="filtroCajero">
+                            <option value="todos">Todos los Cajeros</option>
+                        </select>
+                    </div>
+                    <button class="btn-action btn-primary" onclick="generarReporte()" style="height: 44px; padding: 0 20px;">Filtrar</button>
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi-box"><span>Ventas Efectivo</span><b id="kpiEfectivo">$0.00</b></div>
+                    <div class="kpi-box"><span>Ventas Digitales</span><b id="kpiDigital">$0.00</b></div>
+                    <div class="kpi-box" style="background:#f0fdf4; border-color:var(--primary-dark);"><span>Total Facturado</span><b id="kpiTotal">$0.00</b></div>
+                </div>
+
+                <h3>Productos Vendidos (Top)</h3>
+                <div style="max-height: 250px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad Vendida</th>
+                                <th>Ingreso Generado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaProductosVendidos">
+                            <tr><td colspan="3" style="text-align:center; color:#94a3b8;">Utilice los filtros para ver la información.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
         </div>
     </main>
 
     <script>
-        const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co"; const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
-        const db= supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = "https://ibjllxtwhihrtgfbammi.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImliamxseHR3aGlocnRnZmJhbW1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjc5NjMsImV4cCI6MjA5ODk0Mzk2M30.o-M7x-phvhhKmfG1aVURGUWTz2w_hdtNZ6oSM8sub1Q";
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Inicializar Fechas por defecto (Hoy)
         document.addEventListener("DOMContentLoaded", () => {
-            consultarVentasPorRubro();
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('filtroDesde').value = hoy;
+            document.getElementById('filtroHasta').value = hoy;
+            cargarFiltroUsuarios();
         });
 
+        async function cargarFiltroUsuarios() {
+            const { data } = await db.from('usuarios').select('id, nombre').eq('estado', true);
+            const select = document.getElementById('filtroCajero');
+            if(data) {
+                data.forEach(u => select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
+            }
+        }
+
+        // --- MÓDULO CAJA ---
         async function abrirCaja() {
             const monto = parseFloat(document.getElementById('montoInicial').value);
-            if(!monto && monto !== 0) return alert('Por favor, digite un monto de base válido.');
+            const turno = document.getElementById('turnoCaja').value;
+            
+            if(isNaN(monto) || monto < 0) return alert('Por favor, digite un monto válido.');
 
-            // Obtener el primer usuario existente para cumplir la integridad referencial
-            const { data: usr } = await db.from('usuarios').select('id').limit(1).single();
+            const userGuardado = localStorage.getItem('usuarioActivoQM');
+            if(!userGuardado) return alert('Debes iniciar sesión en la pestaña Ventas con tu PIN antes de abrir la caja.');
+            
+            const usuario = JSON.parse(userGuardado);
+
+            // Verificar si ya hay una caja abierta
+            const { data: cajaActiva } = await db.from('cajas').select('id').eq('estado', 'abierta').maybeSingle();
+            if(cajaActiva) return alert('Ya existe un turno de caja abierto. Ciérrelo antes de abrir uno nuevo.');
 
             const { error } = await db.from('cajas').insert([{
-                id_usuario: usr.id,
+                id_usuario: usuario.id,
                 monto_inicial: monto,
+                turno: turno,
                 estado: 'abierta'
             }]);
 
-            if(!error) alert('¡Turno de caja iniciado correctamente!');
-            else alert('Error de base de datos al abrir caja.');
+            if(!error) {
+                alert(`Turno "${turno}" iniciado correctamente por ${usuario.nombre}.`);
+                document.getElementById('montoInicial').value = '';
+            } else {
+                alert('Error al procesar. Verifique la conexión.');
+            }
         }
 
         async function cerrarCaja() {
-            const { data: caja } = await supabase.from('cajas').select('*').eq('estado', 'abierta').order('fecha_apertura', { ascending: false }).limit(1);
-            if(!caja || caja.length === 0) return alert('No hay ninguna caja abierta actualmente.');
+            const { data: caja } = await db.from('cajas').select('*, usuarios(nombre)').eq('estado', 'abierta').maybeSingle();
+            if(!caja) return alert('No hay ninguna caja abierta actualmente.');
 
-            // Sumar todas las ventas asociadas a este turno de caja
-            const { data: vts } = await supabase.from('ventas').select('total').eq('id_caja', caja[0].id);
+            const { data: vts } = await db.from('ventas').select('total').eq('id_caja', caja.id);
             let totalRecaudado = vts ? vts.reduce((sum, v) => sum + parseFloat(v.total), 0) : 0;
-            let montoFinalCalculado = parseFloat(caja[0].monto_inicial) + totalRecaudado;
+            let montoFinalCalculado = parseFloat(caja.monto_inicial) + totalRecaudado;
 
-            await supabase.from('cajas').update({
-                fecha_cierre: new Date().toISOString(),
-                monto_final: montoFinalCalculado,
-                estado: 'cerrada'
-            }).eq('id', caja[0].id);
-
-            alert(`Caja cerrada con éxito.\nMonto Inicial: $${caja[0].monto_inicial}\nTotal Ventas: $${totalRecaudado}\nMonto Final en Caja: $${montoFinalCalculado}`);
+            if(confirm(`Se cerrará el turno de ${caja.usuarios.nombre}.\n\nMonto Base: $${caja.monto_inicial}\nVentas: $${totalRecaudado}\nTotal que debe haber en caja: $${montoFinalCalculado}\n\n¿Desea continuar?`)) {
+                await db.from('cajas').update({
+                    fecha_cierre: new Date().toISOString(),
+                    monto_final: montoFinalCalculado,
+                    estado: 'cerrada'
+                }).eq('id', caja.id);
+                alert('Arqueo cerrado exitosamente.');
+            }
         }
 
-        async function consultarVentasPorRubro() {
-            // Consulta para reportes uniendo detalles y productos
-            const { data, error } = await supabase.from('venta_detalles').select('subtotal, productos(rubro)');
-            
-            if(data) {
-                const rubrosObj = {};
-                data.forEach(item => {
-                    const rNombre = item.productos?.rubro || 'General';
-                    rubrosObj[rNombre] = (rubrosObj[rNombre] || 0) + parseFloat(item.subtotal);
-                });
+        // --- MÓDULO REPORTES INTELIGENTES ---
+        async function generarReporte() {
+            const desde = document.getElementById('filtroDesde').value;
+            const hasta = document.getElementById('filtroHasta').value;
+            const idCajero = document.getElementById('filtroCajero').value;
 
-                const ul = document.getElementById('ventasRubro');
-                ul.innerHTML = '';
-                for(let r in rubrosObj) {
-                    ul.innerHTML += `<li style="padding:8px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;"><span>${r}</span><b>$ ${rubrosObj[r].toFixed(2)}</b></li>`;
-                }
+            if(!desde || !hasta) return alert('Seleccione un rango de fechas.');
+
+            // 1. Obtener todas las cajas (turnos) en ese rango de fechas
+            let queryCajas = db.from('cajas').select('id').gte('fecha_apertura', desde + 'T00:00:00').lte('fecha_apertura', hasta + 'T23:59:59');
+            if (idCajero !== 'todos') queryCajas = queryCajas.eq('id_usuario', idCajero);
+            
+            const { data: cajasFiltradas } = await queryCajas;
+            if(!cajasFiltradas || cajasFiltradas.length === 0) {
+                return renderLimpiarMetricas();
             }
+
+            const idsCajas = cajasFiltradas.map(c => c.id);
+
+            // 2. Traer las ventas de esas cajas
+            const { data: ventas } = await db.from('ventas').select('id, total, metodo_pago').in('id_caja', idsCajas);
+            if(!ventas || ventas.length === 0) return renderLimpiarMetricas();
+
+            // Cálculos KPI
+            let totEfectivo = 0; let totDigital = 0; let totGeneral = 0;
+            const idsVentas = [];
+
+            ventas.forEach(v => {
+                idsVentas.push(v.id);
+                const monto = parseFloat(v.total);
+                totGeneral += monto;
+                if(v.metodo_pago.toLowerCase() === 'efectivo') totEfectivo += monto;
+                else totDigital += monto;
+            });
+
+            document.getElementById('kpiEfectivo').innerText = `$${totEfectivo.toFixed(2)}`;
+            document.getElementById('kpiDigital').innerText = `$${totDigital.toFixed(2)}`;
+            document.getElementById('kpiTotal').innerText = `$${totGeneral.toFixed(2)}`;
+
+            // 3. Traer detalles de productos vendidos en esas ventas específicas
+            const { data: detalles } = await db.from('venta_detalles').select('cantidad, subtotal, productos(nombre)').in('id_venta', idsVentas);
+            
+            const prodAgrupados = {};
+            detalles.forEach(d => {
+                const pName = d.productos ? d.productos.nombre : 'Prod. Eliminado';
+                if(!prodAgrupados[pName]) prodAgrupados[pName] = { cant: 0, ing: 0 };
+                prodAgrupados[pName].cant += parseFloat(d.cantidad);
+                prodAgrupados[pName].ing += parseFloat(d.subtotal);
+            });
+
+            // Ordenar de mayor a menor ingreso
+            const arrayProd = Object.keys(prodAgrupados).map(k => ({ nombre: k, ...prodAgrupados[k] }));
+            arrayProd.sort((a, b) => b.ing - a.ing);
+
+            const tbody = document.getElementById('tablaProductosVendidos');
+            tbody.innerHTML = '';
+            arrayProd.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td style="font-weight:600;">${p.nombre}</td>
+                    <td>${p.cant}</td>
+                    <td style="color:var(--primary-dark); font-weight:bold;">$${p.ing.toFixed(2)}</td>
+                </tr>`;
+            });
+        }
+
+        function renderLimpiarMetricas() {
+            document.getElementById('kpiEfectivo').innerText = `$0.00`;
+            document.getElementById('kpiDigital').innerText = `$0.00`;
+            document.getElementById('kpiTotal').innerText = `$0.00`;
+            document.getElementById('tablaProductosVendidos').innerHTML = `<tr><td colspan="3" style="text-align:center;">No hay ventas registradas en estos filtros.</td></tr>`;
         }
     </script>
 </body>
